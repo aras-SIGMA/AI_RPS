@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>HandTrack - Batu, Kertas, Gunting AI</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Minimal Top Bar -->
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+            <rect width="24" height="24" rx="6" fill="#111111" />
+            <path d="M12 4L14.5 9.5L20 12L14.5 14.5L12 20L9.5 14.5L4 12L9.5 9.5L12 4Z" fill="#C6F24E" />
+          </svg>
+          <span>HandTrack</span>
+        </div>
+
+        <div class="topbar-right">
+          <span id="status-badge" class="status status-off">
+            <span class="dot"></span>
+            <span id="status-text">Kamera Mati</span>
+          </span>
+          <button id="btn-nav-camera" class="btn btn-dark btn-sm">
+            <span id="btn-nav-text">Nyalakan Kamera</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="app">
+      <!-- Page intro -->
+      <section class="intro">
+        <h1>Deteksi gerakan tangan <span class="accent">real-time</span></h1>
+        <p>Nyalakan kamera dan tunjukkan simbol Batu, Gunting, atau Kertas. Model akan mengenalinya secara otomatis.</p>
+      </section>
+
+      <!-- Primary layout: camera dominant, side panel -->
+      <section class="stage">
+        <!-- Camera -->
+        <div class="camera-card">
+          <div class="camera-viewport" id="camera-wrapper">
+            <video id="webcam" playsinline autoplay muted></video>
+            <canvas id="output-canvas"></canvas>
+
+            <div id="camera-placeholder" class="overlay">
+              <div class="overlay-content">
+                <div class="overlay-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#111111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                </div>
+                <h3>Kamera belum aktif</h3>
+                <p>Izinkan akses webcam pada browser untuk memulai deteksi.</p>
+                <button id="btn-start-hero" class="btn btn-accent">
+                  <span>Nyalakan Kamera</span>
+                </button>
+              </div>
+            </div>
+
+            <div id="loading-overlay" class="overlay hidden">
+              <div class="overlay-content">
+                <div class="spinner"></div>
+                <p id="loading-text">Memuat model AI...</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="camera-bar">
+            <button id="btn-toggle-camera" class="btn btn-dark">
+              <span id="btn-camera-text">Nyalakan Kamera</span>
+            </button>
+            <div class="camera-bar-tools">
+              <button id="btn-toggle-mirror" class="btn btn-ghost btn-sm">
+                <span>Mirror: ON</span>
+              </button>
+              <button id="btn-toggle-skeleton" class="btn btn-ghost btn-sm">
+                <span>Skeleton: ON</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side panel -->
+        <aside class="panel">
+          <!-- Detection -->
+          <div class="panel-block detection" id="gesture-display">
+            <div class="detection-top">
+              <span class="panel-label">Simbol terdeteksi</span>
+              <span id="fps-badge" class="fps">0 FPS</span>
+            </div>
+            <div class="detection-main">
+              <div class="detection-icon" id="gesture-icon-box">
+                <span id="gesture-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="svg-icon">
+                    <circle cx="11" cy="11" r="8"/>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                  </svg>
+                </span>
+              </div>
+              <div class="detection-text">
+                <h2 id="gesture-name">Siap memindai</h2>
+                <div class="confidence">
+                  <div class="confidence-track">
+                    <div id="confidence-fill" class="confidence-fill" style="width: 0%"></div>
+                  </div>
+                  <span id="confidence-text" class="confidence-val">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Fingers -->
+          <div class="panel-block">
+            <span class="panel-label">Status jari</span>
+            <div class="finger-list">
+              <div class="finger" id="finger-thumb">
+                <span class="finger-name">Jempol</span>
+                <span class="fn-state">--</span>
+              </div>
+              <div class="finger" id="finger-index">
+                <span class="finger-name">Telunjuk</span>
+                <span class="fn-state">--</span>
+              </div>
+              <div class="finger" id="finger-middle">
+                <span class="finger-name">Tengah</span>
+                <span class="fn-state">--</span>
+              </div>
+              <div class="finger" id="finger-ring">
+                <span class="finger-name">Manis</span>
+                <span class="fn-state">--</span>
+              </div>
+              <div class="finger" id="finger-pinky">
+                <span class="finger-name">Kelingking</span>
+                <span class="fn-state">--</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <!-- Game -->
+      <section class="game">
+        <div class="game-head">
+          <div>
+            <h2>Mini game</h2>
+            <p>Tantang bot AI. Buat simbol saat hitungan mundur selesai.</p>
+          </div>
+          <button id="btn-play-round" class="btn btn-accent">
+            <span>Main ronde</span>
+          </button>
+        </div>
+
+        <div class="game-arena">
+          <div class="side">
+            <span class="side-label">Kamu</span>
+            <div id="player-choice-icon" class="side-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="svg-icon">
+                <circle cx="12" cy="12" r="10"/>
+              </svg>
+            </div>
+            <span id="player-choice-name" class="side-name">Menunggu</span>
+          </div>
+
+          <div class="side-center">
+            <span id="game-countdown" class="vs">VS</span>
+          </div>
+
+          <div class="side">
+            <span class="side-label">Bot AI</span>
+            <div id="bot-choice-icon" class="side-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="svg-icon">
+                <rect x="3" y="11" width="18" height="10" rx="2"/>
+                <circle cx="12" cy="5" r="2"/>
+                <path d="M12 7v4"/>
+                <line x1="8" y1="16" x2="8" y2="16"/>
+                <line x1="16" y1="16" x2="16" y2="16"/>
+              </svg>
+            </div>
+            <span id="bot-choice-name" class="side-name">Menunggu</span>
+          </div>
+        </div>
+
+        <div class="scoreboard">
+          <div class="score">
+            <span class="score-num win" id="score-win">0</span>
+            <span class="score-lbl">Menang</span>
+          </div>
+          <div class="score">
+            <span class="score-num tie" id="score-tie">0</span>
+            <span class="score-lbl">Seri</span>
+          </div>
+          <div class="score">
+            <span class="score-num lose" id="score-lose">0</span>
+            <span class="score-lbl">Kalah</span>
+          </div>
+        </div>
+
+        <div id="game-result-banner" class="game-banner hidden">
+          <span id="game-result-text">Hasil ronde</span>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <span>HandTrack · Google MediaPipe Tasks Vision</span>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
