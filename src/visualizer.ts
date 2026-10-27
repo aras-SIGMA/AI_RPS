@@ -37,7 +37,7 @@ export class HandVisualizer {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
 
-  draw(landmarksList: Landmark[][], gesture: GestureType = 'Tidak Diketahui'): void {
+  draw(landmarksList: Landmark[][], gesture: GestureType = 'Tidak Diketahui', isError: boolean = false): void {
     const { ctx, canvas } = this;
     const { width, height } = canvas;
 
@@ -51,7 +51,11 @@ export class HandVisualizer {
       let glowColor = '#d2f34c';
       let tipColor = '#ffffff';
 
-      if (gesture === 'Batu') {
+      if (isError) {
+        strokeColor = 'rgba(217, 72, 72, 0.95)'; // Danger Red
+        glowColor = '#d94848';
+        tipColor = '#ffffff';
+      } else if (gesture === 'Batu') {
         strokeColor = 'rgba(239, 68, 68, 0.9)'; // Ruby Red
         glowColor = '#ef4444';
         tipColor = '#ffffff';

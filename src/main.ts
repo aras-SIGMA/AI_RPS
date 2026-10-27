@@ -9,6 +9,7 @@ import type { HandLandmarkerResult } from '@mediapipe/tasks-vision';
 const videoEl = document.getElementById('webcam') as HTMLVideoElement;
 const canvasEl = document.getElementById('output-canvas') as HTMLCanvasElement;
 const cameraWrapper = document.getElementById('camera-wrapper') as HTMLDivElement;
+const cameraAlert = document.getElementById('camera-alert') as HTMLDivElement;
 const placeholderEl = document.getElementById('camera-placeholder') as HTMLDivElement;
 const loadingOverlay = document.getElementById('loading-overlay') as HTMLDivElement;
 const loadingText = document.getElementById('loading-text') as HTMLParagraphElement;
@@ -63,6 +64,7 @@ let isMirror = true;
 cameraWrapper.classList.add('mirror');
 
 let latestGesture: GestureType = 'Tidak Diketahui';
+let hasMultipleHands = false;
 let isPlayingRound = false;
 const scores = { win: 0, tie: 0, lose: 0 };
 
@@ -110,7 +112,27 @@ function handleDetection(result: HandLandmarkerResult, fps: number) {
     visualizer.resize(videoEl.videoWidth, videoEl.videoHeight);
   }
 
-  if (result.landmarks && result.landmarks.length > 0) {
+  const handCount = result.landmarks ? result.landmarks.length : 0;
+
+  if (handCount > 1) {
+    hasMultipleHands = true;
+    latestGesture = 'Tidak Diketahui';
+    cameraAlert.classList.remove('hidden');
+
+    updateGestureUI('Tidak Diketahui', 0, SVG_ICONS.Warning);
+    gestureName.textContent = 'Hanya Boleh 1 Tangan!';
+    gestureDisplayCard.className = 'panel-block detection detected-error';
+    updateFingerUI(undefined);
+
+    if (showSkeleton) {
+      visualizer.draw(result.landmarks, 'Tidak Diketahui', true);
+    } else {
+      visualizer.clear();
+    }
+  } else if (handCount === 1) {
+    hasMultipleHands = false;
+    cameraAlert.classList.add('hidden');
+
     const handLandmarks = result.landmarks[0];
     const classification = classifyGesture(handLandmarks);
 
@@ -118,15 +140,17 @@ function handleDetection(result: HandLandmarkerResult, fps: number) {
     updateFingerUI(classification.fingers);
 
     if (showSkeleton) {
-      visualizer.draw(result.landmarks, classification.gesture);
+      visualizer.draw(result.landmarks, classification.gesture, false);
     } else {
       visualizer.clear();
     }
   } else {
-    // Tangan belum terlihat
+    hasMultipleHands = false;
+    cameraAlert.classList.add('hidden');
+
     visualizer.clear();
     updateGestureUI('Tidak Diketahui', 0, SVG_ICONS.Search);
-    gestureName.textContent = 'Mencari Tangan...';
+    gestureName.textContent = 'Mencari tangan...';
     updateFingerUI(undefined);
   }
 }
@@ -163,6 +187,8 @@ async function startApp() {
 function stopApp() {
   detector.stop();
   visualizer.clear();
+  hasMultipleHands = false;
+  cameraAlert.classList.add('hidden');
   placeholderEl.classList.remove('hidden');
   statusBadge.className = 'status status-off';
   statusText.textContent = 'Kamera mati';
@@ -253,6 +279,20 @@ btnPlayRound.addEventListener('click', () => {
 function finishRound() {
   const userGesture = latestGesture;
   const botChoice = GAME_CHOICES[Math.floor(Math.random() * GAME_CHOICES.length)];
+
+  if (hasMultipleHands) {
+    playerChoiceIcon.innerHTML = SVG_ICONS.Warning;
+    playerChoiceName.textContent = '2 Tangan';
+    botChoiceIcon.innerHTML = botChoice.icon;
+    botChoiceName.textContent = botChoice.name;
+    gameResultBanner.className = 'game-banner result-lose';
+    gameResultText.textContent = 'Hanya boleh satu tangan saja yang terdeteksi! Ronde dibatalkan.';
+    gameResultBanner.classList.remove('hidden');
+    isPlayingRound = false;
+    btnPlayRound.disabled = false;
+    gameCountdown.textContent = 'VS';
+    return;
+  }
 
   const userIconMap: Record<GestureType, string> = {
     Batu: SVG_ICONS.Batu,

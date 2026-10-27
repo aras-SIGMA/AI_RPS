@@ -218,6 +218,33 @@ body {
   transform: scaleX(-1);
 }
 
+/* Multi-hand Floating Alert */
+.camera-alert {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(217, 72, 72, 0.96);
+  color: #ffffff;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 14px rgba(217, 72, 72, 0.4);
+  z-index: 15;
+  pointer-events: none;
+  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
+}
+
+@keyframes slide-down {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
 .camera-bar {
   display: flex;
   align-items: center;
@@ -362,6 +389,9 @@ body {
 .detection.detected-gunting .svg-icon { stroke: var(--tie); }
 .detection.detected-kertas .detection-icon { background-color: #e9f7f0; border-color: #c9ebdb; }
 .detection.detected-kertas .svg-icon { stroke: var(--win); }
+.detection.detected-error .detection-icon { background-color: #fdeceb; border-color: #f6d0ce; }
+.detection.detected-error .svg-icon { stroke: var(--danger); }
+.detection.detected-error h2 { color: var(--danger); font-size: 18px; }
 
 .detection-text { min-width: 0; flex: 1; }
 

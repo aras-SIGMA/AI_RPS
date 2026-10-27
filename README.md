@@ -6,7 +6,8 @@ Dibangun dengan Vite + TypeScript (vanilla) dan Google MediaPipe Tasks Vision.
 
 ## Fitur
 
-- Deteksi tangan real-time via webcam (MediaPipe Hand Landmarker, hingga 2 tangan).
+- Deteksi tangan real-time via webcam (MediaPipe Hand Landmarker).
+- **Validasi Satu Tangan**: Bila terdeteksi lebih dari satu tangan, muncul pesan error dan klasifikasi ditangguhkan.
 - Klasifikasi simbol Batu / Gunting / Kertas berbasis geometri 21 landmark.
 - Deteksi status terbuka/tertekuk per jari (jempol, telunjuk, tengah, manis, kelingking).
 - Overlay skeleton tangan di atas video dengan warna dinamis mengikuti gestur.
